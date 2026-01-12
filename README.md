@@ -8,6 +8,7 @@
 [![Expo](https://img.shields.io/badge/Expo-SDK%2052-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/H6CPCZk7)
 
 <br/>
 
@@ -35,7 +36,7 @@
 ### 🎥 **Movies & TV Shows**
 - Browse trending, popular & top-rated content
 - Powered by TMDB for rich metadata
-- Multiple streaming sources (Torrentio, VidSrc, Stremio Addons)
+- Multiple streaming sources (Torrentio, Stremio Addons)
 - Watch history & continue watching
 - Beautiful UI with smooth animations
 
@@ -140,7 +141,6 @@ Configure your Subsonic-compatible server in the settings:
 | Source | Type | Status |
 |--------|------|--------|
 | **Torrentio** | Torrents | ✅ Active |
-| **VidSrc** | Direct | ✅ Active |
 | **Stremio Addons** | Various | ✅ Active |
 | **TIDAL** | Music | ✅ Active |
 | **Qobuz** | Music | ✅ Active |
