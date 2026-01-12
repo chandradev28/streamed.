@@ -3,7 +3,7 @@
 // API Key: Free tier - 1000 requests/day
 // Uses direct fetch (no proxy) for better reliability
 
-const API_KEY = '4ab1ae59'; // User's OMDB API key
+const API_KEY = 'YOUR_OMDB_API_KEY'; // Get your free API key from https://www.omdbapi.com/apikey.aspx
 const BASE_URL = 'https://www.omdbapi.com';
 
 export interface OMDBRatings {
