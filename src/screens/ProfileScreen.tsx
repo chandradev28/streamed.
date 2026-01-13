@@ -13,6 +13,7 @@ import {
     RefreshControl,
     Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { ArrowLeft, Eye, EyeOff, Check, Trash2, ExternalLink, HardDrive, RefreshCw, Play, Shield, Wifi, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
@@ -29,6 +30,7 @@ interface ProfileScreenProps {
 
 export const ProfileScreen = ({ onBack }: ProfileScreenProps) => {
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
     const [apiKey, setApiKey] = useState('');
     const [showApiKey, setShowApiKey] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -384,7 +386,7 @@ export const ProfileScreen = ({ onBack }: ProfileScreenProps) => {
         <View style={styles.container}>
             <ScreenWrapper style={styles.screenWrapper}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <ArrowLeft color="#fff" size={24} />
                     </TouchableOpacity>
@@ -774,7 +776,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 20,
     },
     backButton: {

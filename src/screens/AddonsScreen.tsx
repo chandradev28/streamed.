@@ -11,6 +11,7 @@ import {
     Alert,
     Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Trash2, RefreshCw, Puzzle, Film, Tv, Subtitles, Settings } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -58,6 +59,7 @@ const getAddonIconBg = (addon: AddonManifest) => {
 };
 
 export const AddonsScreen = ({ navigation }: AddonsScreenProps) => {
+    const insets = useSafeAreaInsets();
     const [installedAddons, setInstalledAddons] = useState<AddonManifest[]>([]);
     const [loading, setLoading] = useState(true);
     const [installing, setInstalling] = useState(false);
@@ -182,7 +184,7 @@ export const AddonsScreen = ({ navigation }: AddonsScreenProps) => {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
@@ -361,7 +363,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 12,
     },
     backButton: {

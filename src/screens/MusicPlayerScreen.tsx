@@ -24,6 +24,7 @@ import {
     FileText,
     Download,
     Heart,
+    Plus,
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import Slider from '@react-native-community/slider';
@@ -41,6 +42,7 @@ import {
 } from '../services/musicPlayerService';
 import { MusicLyricsModal } from '../components/MusicLyricsModal';
 import { MusicQueueModal } from '../components/MusicQueueModal';
+import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
 import { useMusicColors } from '../hooks/useMusicColors';
 import { StorageService, LikedSong } from '../services/storage';
 
@@ -59,6 +61,7 @@ export const MusicPlayerScreen = ({ navigation, route }: MusicPlayerScreenProps)
     const [seekPosition, setSeekPosition] = useState(0);
     const [showLyrics, setShowLyrics] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
+    const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
@@ -174,7 +177,7 @@ export const MusicPlayerScreen = ({ navigation, route }: MusicPlayerScreenProps)
             />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                 <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => navigation.goBack()}
@@ -182,33 +185,43 @@ export const MusicPlayerScreen = ({ navigation, route }: MusicPlayerScreenProps)
                     <ChevronDown color="#fff" size={28} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Now Playing</Text>
-                <TouchableOpacity
-                    style={styles.favoriteButton}
-                    onPress={async () => {
-                        if (!song) return;
-                        const likedSong: LikedSong = {
-                            id: song.id,
-                            title: song.title,
-                            artist: song.artist,
-                            artistId: song.artistId || '',
-                            album: song.album || '',
-                            albumId: song.albumId || '',
-                            duration: song.duration || 0,
-                            coverArt: song.coverArt || null,
-                            quality: song.suffix || 'FLAC',
-                            source: song.source || 'hifi',
-                            likedAt: Date.now(),
-                        };
-                        const isNowLiked = await StorageService.toggleLiked(likedSong);
-                        setIsFavorite(isNowLiked);
-                    }}
-                >
-                    <Heart
-                        color={isFavorite ? '#EF4444' : '#fff'}
-                        size={24}
-                        fill={isFavorite ? '#EF4444' : 'transparent'}
-                    />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {/* Add to Playlist button */}
+                    <TouchableOpacity
+                        style={styles.favoriteButton}
+                        onPress={() => setShowAddToPlaylist(true)}
+                    >
+                        <Plus color="#fff" size={24} />
+                    </TouchableOpacity>
+                    {/* Heart/Like button */}
+                    <TouchableOpacity
+                        style={styles.favoriteButton}
+                        onPress={async () => {
+                            if (!song) return;
+                            const likedSong: LikedSong = {
+                                id: song.id,
+                                title: song.title,
+                                artist: song.artist,
+                                artistId: song.artistId || '',
+                                album: song.album || '',
+                                albumId: song.albumId || '',
+                                duration: song.duration || 0,
+                                coverArt: song.coverArt || null,
+                                quality: song.suffix || 'FLAC',
+                                source: song.source || 'hifi',
+                                likedAt: Date.now(),
+                            };
+                            const isNowLiked = await StorageService.toggleLiked(likedSong);
+                            setIsFavorite(isNowLiked);
+                        }}
+                    >
+                        <Heart
+                            color={isFavorite ? '#EF4444' : '#fff'}
+                            size={24}
+                            fill={isFavorite ? '#EF4444' : 'transparent'}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Album Art */}
@@ -341,6 +354,25 @@ export const MusicPlayerScreen = ({ navigation, route }: MusicPlayerScreenProps)
                 visible={showQueue}
                 onClose={() => setShowQueue(false)}
             />
+
+            {/* Add to Playlist Modal */}
+            {song && (
+                <AddToPlaylistModal
+                    visible={showAddToPlaylist}
+                    onClose={() => setShowAddToPlaylist(false)}
+                    track={{
+                        id: song.id,
+                        title: song.title,
+                        artist: song.artist,
+                        artistId: song.artistId || '',
+                        album: song.album || '',
+                        albumId: song.albumId || '',
+                        duration: song.duration || 0,
+                        coverArt: song.coverArt,
+                        source: song.source || 'hifi',
+                    }}
+                />
+            )}
         </View>
     );
 };
@@ -362,7 +394,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 20,
     },
     closeButton: {

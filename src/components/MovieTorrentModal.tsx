@@ -164,16 +164,18 @@ export const MovieTorrentModal: React.FC<MovieTorrentModalProps> = ({
 
             const torboxApiKey = await StorageService.getTorBoxApiKey();
 
-            if (!torboxApiKey) {
-                setError('TorBox API key not configured. Go to Profile to add it.');
+            // Check if addons multi-source mode is enabled FIRST
+            const addonsMasterEnabled = await AsyncStorage.getItem('@streamed_addons_enabled');
+            const isAddonsEnabled = addonsMasterEnabled === 'true';
+            setAddonsEnabled(isAddonsEnabled);
+
+            // Addons mode can work without Torbox API key (for direct URL streams)
+            // Only require Torbox key if NOT using addons mode
+            if (!torboxApiKey && !isAddonsEnabled) {
+                setError('TorBox API key not configured. You can also enable Addons mode in Settings → Addons for free streaming.');
                 setLoading(false);
                 return;
             }
-
-            // Check if addons multi-source mode is enabled (default false - use indexers)
-            const addonsMasterEnabled = await AsyncStorage.getItem('@streamed_addons_enabled');
-            const isAddonsEnabled = addonsMasterEnabled === 'true'; // Default to false (indexers)
-            setAddonsEnabled(isAddonsEnabled);
 
             // Get active indexer
             const activeIndexer = await StorageService.getActiveIndexer();
@@ -210,9 +212,14 @@ export const MovieTorrentModal: React.FC<MovieTorrentModalProps> = ({
                     behaviorHints: s.behaviorHints
                 })) as EnhancedStream[];
             }
-            // PRIORITY 2: INDEXER MODE (no addons enabled)
+            // PRIORITY 2: INDEXER MODE (no addons enabled) - requires Torbox API key
             else if (activeIndexer === 'zilean') {
-                // Zilean indexer - exclusive mode, unlimited results
+                // Zilean indexer - requires Torbox key for cache checking
+                if (!torboxApiKey) {
+                    setError('TorBox API key required for Zilean indexer. Go to Profile to add it.');
+                    setLoading(false);
+                    return;
+                }
                 setIsZileanIndexer(true);
                 console.log('Using Zilean indexer for movie (unlimited results)...');
                 try {
@@ -223,7 +230,12 @@ export const MovieTorrentModal: React.FC<MovieTorrentModalProps> = ({
                     setError('Failed to fetch from Zilean');
                 }
             } else {
-                // Torrentio indexer
+                // Torrentio indexer - requires Torbox key
+                if (!torboxApiKey) {
+                    setError('TorBox API key required for Torrentio indexer. Go to Profile to add it.');
+                    setLoading(false);
+                    return;
+                }
                 setIsZileanIndexer(false);
                 console.log('Using Torrentio for movie (single source)...');
                 streams = await getMovieCachedOnlyStreams(imdbId, torboxApiKey);
@@ -1282,76 +1294,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
-    // Scraper tabs styles
-    scraperTabsContainer: {
-        maxHeight: 44,
-        marginBottom: 12,
-    },
-    scraperTabsContent: {
-        paddingRight: 12,
-        gap: 8,
-    },
-    scraperTab: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        gap: 6,
-    },
-    scraperTabActive: {
-        backgroundColor: '#3B82F6',
-        borderColor: '#3B82F6',
-    },
-    scraperTabText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#888',
-    },
-    scraperTabTextActive: {
-        color: '#fff',
-    },
-    scraperTabBadge: {
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 10,
-        minWidth: 20,
-        alignItems: 'center',
-    },
-    scraperTabBadgeActive: {
-        backgroundColor: 'rgba(255,255,255,0.25)',
-    },
-    scraperTabBadgeText: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: '#888',
-    },
-    scraperTabBadgeTextActive: {
-        color: '#fff',
-    },
-    pstreamLoadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    pstreamLoadingText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
-        marginTop: 16,
-        textAlign: 'center',
-    },
-    pstreamLoadingSubtext: {
-        color: '#888',
-        fontSize: 12,
-        marginTop: 4,
-        textAlign: 'center',
-    },
 });
+
 
 export default MovieTorrentModal;

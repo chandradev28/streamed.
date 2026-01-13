@@ -274,7 +274,10 @@ export async function playQueue(songs: HiFiSong[], startIndex: number = 0): Prom
                 if (url) StorageService.updateLikedSongCache(song.id, 'qobuz', url);
                 return url;
             } else {
-                return getStreamUrl(song.id);
+                // HiFi local server
+                const url = getStreamUrl(song.id);
+                console.log('[MusicPlayer] HiFi stream URL:', url, 'for song:', song.title, 'source:', song.source);
+                return url;
             }
         };
 

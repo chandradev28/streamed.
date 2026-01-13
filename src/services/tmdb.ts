@@ -1,7 +1,7 @@
 // TMDB API Service
 import { Movie, TVShow, MovieDetails, TVShowDetails, TrendingResponse, MediaItem, SeasonDetails, CreditsResponse } from '../types/types';
 
-const API_KEY = 'cd45143a9ade518a4381e765c719e68b';
+const API_KEY = process.env.EXPO_PUBLIC_TMDB_API_KEY || '';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 

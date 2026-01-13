@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Animated } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Menu, User } from 'lucide-react-native';
 
@@ -18,6 +19,9 @@ export const HeaderNav = ({
     sourceMode = 'streamed',
     onSourceModeChange,
 }: HeaderNavProps) => {
+    // Get safe area insets for dynamic positioning
+    const insets = useSafeAreaInsets();
+
     // Animation for sliding pill
     const slideAnim = useRef(new Animated.Value(sourceMode === 'streamed' ? 0 : 1)).current;
 
@@ -45,7 +49,11 @@ export const HeaderNav = ({
     const isTorboxers = sourceMode === 'torboxers';
 
     return (
-        <View style={[styles.container, isTorboxers && styles.containerCentered]}>
+        <View style={[
+            styles.container,
+            isTorboxers && styles.containerCentered,
+            { paddingTop: insets.top + 12 } // Dynamic safe area padding
+        ]}>
             {/* Left: Hamburger Menu - only in Streamed mode */}
             {!isTorboxers && (
                 <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
@@ -111,7 +119,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingVertical: 24,
+        paddingBottom: 12,
         width: '100%',
         position: 'absolute',
         top: 0,

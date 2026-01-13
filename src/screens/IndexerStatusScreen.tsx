@@ -10,6 +10,7 @@ import {
     StatusBar,
     RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
     ChevronLeft,
@@ -34,6 +35,7 @@ interface IndexerHealth {
 }
 
 export const IndexerStatusScreen = ({ navigation }: IndexerStatusScreenProps) => {
+    const insets = useSafeAreaInsets();
     const [torrentioHealth, setTorrentioHealth] = useState<IndexerHealth | null>(null);
     const [zileanHealth, setZileanHealth] = useState<IndexerHealth | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -165,7 +167,7 @@ export const IndexerStatusScreen = ({ navigation }: IndexerStatusScreenProps) =>
             />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
@@ -244,7 +246,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
     },
     backButton: {

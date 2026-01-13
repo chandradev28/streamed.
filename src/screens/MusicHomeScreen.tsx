@@ -12,6 +12,7 @@ import {
     RefreshControl,
     Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
     ChevronLeft,
@@ -61,6 +62,7 @@ interface MusicHomeScreenProps {
 }
 
 export const MusicHomeScreen = ({ navigation }: MusicHomeScreenProps) => {
+    const insets = useSafeAreaInsets();
     const musicColors = useMusicColors();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<TabType>('tracks');
@@ -149,6 +151,7 @@ export const MusicHomeScreen = ({ navigation }: MusicHomeScreenProps) => {
 
     // Play a track
     const handlePlayTrack = async (track: MusicTrack, allTracks: MusicTrack[], index: number) => {
+        console.log('[Home] handlePlayTrack called - track:', track.title, 'source:', track.source, 'id:', track.id);
         try {
             // For TIDAL/Qobuz: play ONLY the clicked track to avoid mismatch issues
             if (track.source === 'tidal' || track.source === 'qobuz') {
@@ -266,21 +269,7 @@ export const MusicHomeScreen = ({ navigation }: MusicHomeScreenProps) => {
                         </View>
                     </LinearGradient>
 
-                    {/* Quick Actions */}
-                    <View style={styles.quickActions}>
-                        <TouchableOpacity style={styles.quickActionCard}>
-                            <Disc3 color="#A78BFA" size={24} />
-                            <Text style={styles.quickActionText}>Albums</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickActionCard}>
-                            <User color="#3B82F6" size={24} />
-                            <Text style={styles.quickActionText}>Artists</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickActionCard}>
-                            <ListMusic color="#10B981" size={24} />
-                            <Text style={styles.quickActionText}>Playlists</Text>
-                        </TouchableOpacity>
-                    </View>
+
                 </View>
             );
         }
@@ -472,7 +461,7 @@ export const MusicHomeScreen = ({ navigation }: MusicHomeScreenProps) => {
             {/* Hero Section */}
             <LinearGradient
                 colors={['rgba(139, 92, 246, 0.3)', 'rgba(59, 130, 246, 0.15)', 'transparent']}
-                style={styles.heroGradient}
+                style={[styles.heroGradient, { paddingTop: insets.top + 12 }]}
             >
                 <View style={styles.header}>
                     <TouchableOpacity
@@ -482,6 +471,13 @@ export const MusicHomeScreen = ({ navigation }: MusicHomeScreenProps) => {
                         <ChevronLeft color="#fff" size={28} />
                     </TouchableOpacity>
                     <View style={styles.headerRightButtons}>
+                        {/* Playlists button */}
+                        <TouchableOpacity
+                            style={styles.headerButton}
+                            onPress={() => navigation.navigate('MyPlaylists')}
+                        >
+                            <ListMusic color="#A78BFA" size={22} />
+                        </TouchableOpacity>
                         {/* Library button */}
                         <TouchableOpacity
                             style={styles.headerButton}
@@ -940,7 +936,6 @@ const styles = StyleSheet.create({
     },
     // Hero styles
     heroGradient: {
-        paddingTop: Platform.OS === 'ios' ? 50 : 30,
         paddingBottom: 20,
     },
     heroContent: {

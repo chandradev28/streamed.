@@ -5,54 +5,19 @@ const STORAGE_KEYS = {
     TORBOX_API_KEY: '@streamed_torbox_api_key',
     DNS_PROVIDER: '@streamed_dns_provider',
     ACTIVE_INDEXER: '@streamed_active_indexer',
-    USE_SCRAPERS: '@streamed_use_scrapers',  // When true, use scrapers instead of TorBox
-    ENABLED_SCRAPERS: '@streamed_enabled_scrapers',
     ZILEAN_ENABLED: '@streamed_zilean_enabled',     // Zilean alongside other sources
     ZILEAN_DMM_MODE: '@streamed_zilean_dmm_mode',   // Exclusive Zilean mode
     HIFI_CREDENTIALS: '@streamed_hifi_credentials', // HiFi music service credentials
     LIKED_SONGS: '@streamed_liked_songs',           // Liked songs library
     MUSIC_SOURCE: '@streamed_music_source',         // Music source preference: 'hifi' | 'tidal'
+    USER_PLAYLISTS: '@streamed_user_playlists',     // User-created playlists
 };
+
 
 export type MusicSourceType = 'hifi' | 'tidal' | 'qobuz';
 
 export type DnsProviderType = 'none' | 'cloudflare' | 'google' | 'adguard' | 'quad9';
 export type IndexerType = 'torrentio' | 'zilean';
-
-// All available scraper types
-export type ScraperType =
-    | 'pstream'    // Direct stream extraction (best quality)
-    | 'xprime'
-    | 'vixsrc'
-    | 'videasy'
-    | 'vidnest'
-    | 'vidsrcme';  // VidSrc.me - large library, 1080p
-
-// Scraper configuration for UI
-export interface ScraperConfig {
-    id: ScraperType;
-    name: string;
-    description: string;
-    format: string;
-    supportsMovies: boolean;
-    supportsTV: boolean;
-}
-
-// All available scrapers with their configurations
-export const AVAILABLE_SCRAPERS: ScraperConfig[] = [
-    { id: 'pstream', name: 'PStream', description: 'Direct HLS streams - VLC playback', format: 'HLS', supportsMovies: true, supportsTV: true },
-    { id: 'xprime', name: 'XPrime', description: 'Multi-server embed player', format: 'Embed', supportsMovies: true, supportsTV: true },
-    { id: 'vidsrcme', name: 'VidSrc', description: 'Large library, 80% 1080p content', format: 'Embed', supportsMovies: true, supportsTV: true },
-    { id: 'vixsrc', name: 'VixSrc', description: 'Auto quality embed player', format: 'Embed', supportsMovies: true, supportsTV: true },
-    { id: 'videasy', name: 'VIDEASY', description: 'Multi-server embed player', format: 'Embed', supportsMovies: true, supportsTV: true },
-    { id: 'vidnest', name: 'VidNest', description: 'Multi-server embed player', format: 'Embed', supportsMovies: true, supportsTV: true },
-];
-
-// Default enabled scrapers
-const DEFAULT_ENABLED_SCRAPERS: ScraperType[] = ['pstream', 'xprime'];
-
-// Legacy type for backward compatibility
-export type StreamSourceType = 'torbox' | 'xprime';
 
 export const StorageService = {
     // TorBox API Key
@@ -89,33 +54,6 @@ export const StorageService = {
     async isTorBoxConfigured(): Promise<boolean> {
         const apiKey = await this.getTorBoxApiKey();
         return !!apiKey && apiKey.length > 0;
-    },
-
-    // Scrapers mode toggle - DISABLED: always use TorBox
-    // To re-enable scrapers in the future, restore the original logic
-    async getUseScrapers(): Promise<boolean> {
-        // Scrapers are disabled - always return false
-        return false;
-        /* Original logic - uncomment to re-enable:
-        try {
-            const value = await AsyncStorage.getItem(STORAGE_KEYS.USE_SCRAPERS);
-            // Default to false (TorBox mode)
-            return value === 'true';
-        } catch (error) {
-            console.error('Error getting scrapers mode:', error);
-            return false;
-        }
-        */
-    },
-
-    async setUseScrapers(enabled: boolean): Promise<boolean> {
-        try {
-            await AsyncStorage.setItem(STORAGE_KEYS.USE_SCRAPERS, enabled.toString());
-            return true;
-        } catch (error) {
-            console.error('Error saving scrapers mode:', error);
-            return false;
-        }
     },
 
     // DNS Provider
@@ -157,84 +95,6 @@ export const StorageService = {
         } catch (error) {
             console.error('Error saving active indexer:', error);
             return false;
-        }
-    },
-
-    // Enabled Scrapers (multi-select)
-    async getEnabledScrapers(): Promise<ScraperType[]> {
-        try {
-            const scrapers = await AsyncStorage.getItem(STORAGE_KEYS.ENABLED_SCRAPERS);
-            if (scrapers) {
-                return JSON.parse(scrapers) as ScraperType[];
-            }
-            return DEFAULT_ENABLED_SCRAPERS;
-        } catch (error) {
-            console.error('Error getting enabled scrapers:', error);
-            return DEFAULT_ENABLED_SCRAPERS;
-        }
-    },
-
-    async setEnabledScrapers(scrapers: ScraperType[]): Promise<boolean> {
-        try {
-            await AsyncStorage.setItem(STORAGE_KEYS.ENABLED_SCRAPERS, JSON.stringify(scrapers));
-            return true;
-        } catch (error) {
-            console.error('Error saving enabled scrapers:', error);
-            return false;
-        }
-    },
-
-    async toggleScraper(scraperId: ScraperType, enabled: boolean): Promise<boolean> {
-        try {
-            const current = await this.getEnabledScrapers();
-            let updated: ScraperType[];
-
-            if (enabled) {
-                updated = current.includes(scraperId) ? current : [...current, scraperId];
-            } else {
-                updated = current.filter(s => s !== scraperId);
-            }
-
-            return await this.setEnabledScrapers(updated);
-        } catch (error) {
-            console.error('Error toggling scraper:', error);
-            return false;
-        }
-    },
-
-    async isScraperEnabled(scraperId: ScraperType): Promise<boolean> {
-        const enabled = await this.getEnabledScrapers();
-        return enabled.includes(scraperId);
-    },
-
-    // Legacy: Stream Source (for backward compatibility with existing code)
-    async getStreamSource(): Promise<StreamSourceType> {
-        try {
-            // Check if scrapers mode is enabled
-            const useScrapers = await this.getUseScrapers();
-            if (useScrapers) {
-                return 'xprime'; // Scrapers mode
-            }
-            return 'torbox'; // TorBox mode (default)
-        } catch (error) {
-            console.error('Error getting stream source:', error);
-            return 'torbox';
-        }
-    },
-
-    async setStreamSource(source: StreamSourceType): Promise<boolean> {
-        // Legacy: Map to new system
-        if (source === 'torbox') {
-            await this.setUseScrapers(false);
-            return true;
-        } else {
-            await this.setUseScrapers(true);
-            // Enable xprime if not already
-            const scrapers = await this.getEnabledScrapers();
-            if (!scrapers.includes('xprime')) {
-                await this.toggleScraper('xprime', true);
-            }
-            return true;
         }
     },
 
@@ -581,6 +441,142 @@ export const StorageService = {
             return false;
         }
     },
+
+    // ========================================================================
+    // User Playlists
+    // ========================================================================
+
+    /**
+     * Get all user playlists
+     */
+    async getUserPlaylists(): Promise<UserPlaylist[]> {
+        try {
+            const data = await AsyncStorage.getItem(STORAGE_KEYS.USER_PLAYLISTS);
+            if (!data) return [];
+            return JSON.parse(data) as UserPlaylist[];
+        } catch (error) {
+            console.error('Error getting user playlists:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Create a new playlist
+     */
+    async createPlaylist(name: string, description?: string): Promise<UserPlaylist> {
+        const newPlaylist: UserPlaylist = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            name,
+            description,
+            tracks: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        };
+        try {
+            const playlists = await this.getUserPlaylists();
+            playlists.unshift(newPlaylist);
+            await AsyncStorage.setItem(STORAGE_KEYS.USER_PLAYLISTS, JSON.stringify(playlists));
+            console.log('[Storage] Created playlist:', name);
+            return newPlaylist;
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            return newPlaylist;
+        }
+    },
+
+    /**
+     * Update an existing playlist
+     */
+    async updatePlaylist(playlist: UserPlaylist): Promise<boolean> {
+        try {
+            const playlists = await this.getUserPlaylists();
+            const index = playlists.findIndex(p => p.id === playlist.id);
+            if (index === -1) return false;
+            playlists[index] = { ...playlist, updatedAt: Date.now() };
+            await AsyncStorage.setItem(STORAGE_KEYS.USER_PLAYLISTS, JSON.stringify(playlists));
+            console.log('[Storage] Updated playlist:', playlist.name);
+            return true;
+        } catch (error) {
+            console.error('Error updating playlist:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Delete a playlist
+     */
+    async deletePlaylist(playlistId: string): Promise<boolean> {
+        try {
+            const playlists = await this.getUserPlaylists();
+            const filtered = playlists.filter(p => p.id !== playlistId);
+            await AsyncStorage.setItem(STORAGE_KEYS.USER_PLAYLISTS, JSON.stringify(filtered));
+            console.log('[Storage] Deleted playlist:', playlistId);
+            return true;
+        } catch (error) {
+            console.error('Error deleting playlist:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Add a track to a playlist
+     */
+    async addTrackToPlaylist(playlistId: string, track: PlaylistTrack): Promise<boolean> {
+        try {
+            const playlists = await this.getUserPlaylists();
+            const playlist = playlists.find(p => p.id === playlistId);
+            if (!playlist) return false;
+            // Check if track already exists
+            if (playlist.tracks.some(t => t.id === track.id && t.source === track.source)) {
+                console.log('[Storage] Track already in playlist');
+                return true;
+            }
+            playlist.tracks.push({ ...track, addedAt: Date.now() });
+            playlist.updatedAt = Date.now();
+            // Update cover art if first track
+            if (!playlist.coverArt && track.coverArt) {
+                playlist.coverArt = track.coverArt;
+            }
+            await AsyncStorage.setItem(STORAGE_KEYS.USER_PLAYLISTS, JSON.stringify(playlists));
+            console.log('[Storage] Added track to playlist:', track.title);
+            return true;
+        } catch (error) {
+            console.error('Error adding track to playlist:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Remove a track from a playlist
+     */
+    async removeTrackFromPlaylist(playlistId: string, trackId: string, source: 'tidal' | 'hifi' | 'qobuz'): Promise<boolean> {
+        try {
+            const playlists = await this.getUserPlaylists();
+            const playlist = playlists.find(p => p.id === playlistId);
+            if (!playlist) return false;
+            playlist.tracks = playlist.tracks.filter(t => !(t.id === trackId && t.source === source));
+            playlist.updatedAt = Date.now();
+            await AsyncStorage.setItem(STORAGE_KEYS.USER_PLAYLISTS, JSON.stringify(playlists));
+            console.log('[Storage] Removed track from playlist');
+            return true;
+        } catch (error) {
+            console.error('Error removing track from playlist:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Get a single playlist by ID
+     */
+    async getPlaylistById(playlistId: string): Promise<UserPlaylist | null> {
+        try {
+            const playlists = await this.getUserPlaylists();
+            return playlists.find(p => p.id === playlistId) || null;
+        } catch (error) {
+            console.error('Error getting playlist:', error);
+            return null;
+        }
+    },
 };
 
 // Download bookmark type
@@ -614,3 +610,36 @@ export interface LikedSong {
     cachedAt?: number;
 }
 
+// User playlist track
+export interface PlaylistTrack {
+    id: string;
+    source: 'tidal' | 'hifi' | 'qobuz';
+    title: string;
+    artist: string;
+    artistId: string;
+    album: string;
+    albumId: string;
+    duration: number;
+    coverArt: string | null;
+    addedAt: number;
+    // Import metadata
+    originalTitle?: string;
+    originalArtist?: string;
+    matchConfidence?: number;
+}
+
+// User playlist
+export interface UserPlaylist {
+    id: string;
+    name: string;
+    description?: string;
+    coverArt?: string;
+    tracks: PlaylistTrack[];
+    createdAt: number;
+    updatedAt: number;
+    importSource?: {
+        platform: 'spotify' | 'apple' | 'youtube';
+        originalId: string;
+        originalName: string;
+    };
+}

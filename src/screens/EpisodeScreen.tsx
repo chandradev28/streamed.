@@ -12,6 +12,7 @@ import {
     ActivityIndicator,
     Animated,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, ChevronDown, Play } from 'lucide-react-native';
 import { getImageUrl, getSeasonDetails, getTVShowDetails } from '../services/tmdb';
@@ -26,6 +27,7 @@ interface EpisodeScreenProps {
 }
 
 export const EpisodeScreen = ({ route, navigation }: EpisodeScreenProps) => {
+    const insets = useSafeAreaInsets();
     const { tvId, seasonNumber: initialSeason, showName, posterPath } = route.params;
 
     const [showDetails, setShowDetails] = useState<TVShowDetails | null>(null);
@@ -160,7 +162,7 @@ export const EpisodeScreen = ({ route, navigation }: EpisodeScreenProps) => {
                 contentContainerStyle={styles.scrollContent}
             >
                 {/* Header with Close Button */}
-                <View style={styles.header}>
+                <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                     <TouchableOpacity
                         style={styles.closeButton}
                         onPress={() => navigation.goBack()}
@@ -355,7 +357,6 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 20,
         alignItems: 'flex-start',
     },

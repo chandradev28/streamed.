@@ -1,6 +1,3 @@
-// Polyfill for @p-stream/providers
-import '@react-native-anywhere/polyfill-base64';
-
 import React, { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Linking } from 'react-native';
@@ -21,6 +18,8 @@ import { MusicArtistScreen } from './src/screens/MusicArtistScreen';
 import { MusicPlaylistScreen } from './src/screens/MusicPlaylistScreen';
 import { MusicLibraryScreen } from './src/screens/MusicLibraryScreen';
 import { MusicSettingsScreen } from './src/screens/MusicSettingsScreen';
+import { MyPlaylistsScreen } from './src/screens/MyPlaylistsScreen';
+import { UserPlaylistScreen } from './src/screens/UserPlaylistScreen';
 import { getState } from './src/services/musicPlayerService';
 
 const Stack = createNativeStackNavigator();
@@ -69,6 +68,8 @@ export default function App() {
         <Stack.Screen name="MusicPlaylist" component={MusicPlaylistScreen} options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="MusicLibrary" component={MusicLibraryScreen} options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="MusicSettings" component={MusicSettingsScreen} options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="MyPlaylists" component={MyPlaylistsScreen} options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="UserPlaylist" component={UserPlaylistScreen} options={{ animation: 'slide_from_right' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

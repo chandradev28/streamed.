@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { X, Play, Plus, Zap, HardDrive, AlertCircle, CheckCircle, ArrowUpDown, ArrowDown, ArrowUp } from 'lucide-react-native';
 import { getTVCachedOnlyStreams, EnhancedStream, parseStreamInfo } from '../services/torrentio';
 import { addTorrent, getInstantStreamUrl, getUserTorrents, TorBoxTorrent, getTorrentFilesWithUrls, getTorrentByHash } from '../services/torbox';
-import { StorageService, ScraperType } from '../services/storage';
+import { StorageService } from '../services/storage';
 import { getTVExternalIds } from '../services/tmdb';
 import { PlayerSelectionModal } from './PlayerSelectionModal';
 import { isSeasonPack, isSeasonPackTitle } from '../services/episodeParser';
@@ -185,16 +185,18 @@ export const TorrentResultsModal: React.FC<TorrentResultsModalProps> = ({
             const torboxApiKey = await StorageService.getTorBoxApiKey();
             console.log('TorBox API Key:', torboxApiKey ? 'Found' : 'NOT FOUND');
 
-            if (!torboxApiKey) {
-                setError('TorBox API key not configured. Go to Profile to add it.');
+            // Check if addons multi-source mode is enabled FIRST
+            const addonsMasterEnabled = await AsyncStorage.getItem('@streamed_addons_enabled');
+            const isAddonsEnabled = addonsMasterEnabled === 'true';
+            setAddonsEnabled(isAddonsEnabled);
+
+            // Addons mode can work without Torbox API key (for direct URL streams)
+            // Only require Torbox key if NOT using addons mode
+            if (!torboxApiKey && !isAddonsEnabled) {
+                setError('TorBox API key not configured. You can also enable Addons mode in Settings → Addons for free streaming.');
                 setLoading(false);
                 return;
             }
-
-            // Check if addons multi-source mode is enabled (default false - use indexers)
-            const addonsMasterEnabled = await AsyncStorage.getItem('@streamed_addons_enabled');
-            const isAddonsEnabled = addonsMasterEnabled === 'true'; // Default to false (indexers)
-            setAddonsEnabled(isAddonsEnabled);
 
             console.log('Fetching external IDs...');
             const externalIds = await getTVExternalIds(tvId);
@@ -241,9 +243,14 @@ export const TorrentResultsModal: React.FC<TorrentResultsModalProps> = ({
                     behaviorHints: s.behaviorHints
                 })) as EnhancedStream[];
             }
-            // PRIORITY 2: INDEXER MODE (no addons enabled)
+            // PRIORITY 2: INDEXER MODE (no addons enabled) - requires Torbox API key
             else if (activeIndexer === 'zilean') {
-                // Zilean indexer - exclusive mode, unlimited results
+                // Zilean indexer - requires Torbox key for cache checking
+                if (!torboxApiKey) {
+                    setError('TorBox API key required for Zilean indexer. Go to Profile to add it.');
+                    setLoading(false);
+                    return;
+                }
                 setIsZileanIndexer(true);
                 console.log('Using Zilean indexer for TV (unlimited results)...');
                 try {
@@ -254,7 +261,12 @@ export const TorrentResultsModal: React.FC<TorrentResultsModalProps> = ({
                     setError('Failed to fetch from Zilean');
                 }
             } else {
-                // Torrentio indexer
+                // Torrentio indexer - requires Torbox key
+                if (!torboxApiKey) {
+                    setError('TorBox API key required for Torrentio indexer. Go to Profile to add it.');
+                    setLoading(false);
+                    return;
+                }
                 setIsZileanIndexer(false);
                 console.log('Using Torrentio for TV (single source)...');
                 streams = await getTVCachedOnlyStreams(

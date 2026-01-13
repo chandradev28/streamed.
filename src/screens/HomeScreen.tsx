@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { Colors } from '../constants/Colors';
@@ -16,13 +17,15 @@ import { SearchScreen } from './SearchScreen';
 import { LibraryScreen } from './LibraryScreen';
 import { ProfileScreen } from './ProfileScreen';
 
-const { width } = Dimensions.get('window');
-
 type Tab = 'Home' | 'Playlist' | 'Search' | 'Library';
 type SourceMode = 'streamed' | 'torboxers';
 
+// Header height constant for dynamic spacing
+const HEADER_HEIGHT = 68;
+
 export const HomeScreen = () => {
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
     const [currentTab, setCurrentTab] = useState<Tab>('Home');
     const [showProfile, setShowProfile] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
@@ -69,8 +72,8 @@ export const HomeScreen = () => {
                         style={styles.scrollView}
                         showsVerticalScrollIndicator={false}
                     >
-                        {/* Spacer for fixed Header */}
-                        <View style={{ height: 80 }} />
+                        {/* Dynamic spacer for fixed Header based on safe area */}
+                        <View style={{ height: insets.top + HEADER_HEIGHT }} />
 
                         <MovieCarousel />
 

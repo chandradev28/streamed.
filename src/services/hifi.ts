@@ -21,9 +21,12 @@ const TIDAL_API_ENDPOINTS = [
     { name: 'binimum', url: 'https://tidal-api.binimum.org', maxQuality: 'LOSSLESS' },
 ];
 
-// HiFi server (Subsonic API with hardcoded auth)
-const HIFI_API_HOST = 'http://135.235.163.138:8080';
-const HIFI_CREDENTIALS = { username: 'hifi', password: 'local' };
+// HiFi server (Subsonic API - credentials from environment)
+const HIFI_API_HOST = process.env.EXPO_PUBLIC_HIFI_HOST || '';
+const HIFI_CREDENTIALS = {
+    username: process.env.EXPO_PUBLIC_HIFI_USERNAME || '',
+    password: process.env.EXPO_PUBLIC_HIFI_PASSWORD || ''
+};
 const API_VERSION = '1.16.1';
 const CLIENT_NAME = 'StreamedApp';
 

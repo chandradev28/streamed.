@@ -5,10 +5,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     Animated,
-    Dimensions,
-    Platform,
     StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
     X,
@@ -18,8 +17,6 @@ import {
     ChevronRight,
     Music2,
 } from 'lucide-react-native';
-
-const { width, height } = Dimensions.get('window');
 
 interface MenuOverlayProps {
     visible: boolean;
@@ -36,6 +33,7 @@ const menuItems = [
 
 
 export const MenuOverlay = ({ visible, onClose, onNavigate }: MenuOverlayProps) => {
+    const insets = useSafeAreaInsets();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(-50)).current;
     const itemAnims = useRef(menuItems.map(() => new Animated.Value(0))).current;
@@ -109,7 +107,10 @@ export const MenuOverlay = ({ visible, onClose, onNavigate }: MenuOverlayProps) 
             <Animated.View
                 style={[
                     styles.header,
-                    { transform: [{ translateY: slideAnim }] }
+                    {
+                        transform: [{ translateY: slideAnim }],
+                        paddingTop: insets.top + 20 // Dynamic safe area padding
+                    }
                 ]}
             >
                 <Text style={styles.headerTitle}>Menu</Text>
@@ -166,7 +167,7 @@ export const MenuOverlay = ({ visible, onClose, onNavigate }: MenuOverlayProps) 
             </View>
 
             {/* Footer */}
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
                 <Text style={styles.footerText}>Streamed v1.0.0</Text>
             </View>
         </Animated.View>
@@ -190,14 +191,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 20,
     },
     headerTitle: {
         fontSize: 32,
         fontWeight: '700',
         color: '#fff',
-        fontFamily: Platform.OS === 'ios' ? 'San Francisco' : 'sans-serif',
     },
     closeButton: {
         width: 44,
@@ -254,7 +253,6 @@ const styles = StyleSheet.create({
     },
     footer: {
         paddingHorizontal: 24,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
         alignItems: 'center',
     },
     footerText: {
